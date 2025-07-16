@@ -13,7 +13,7 @@ namespace DataSender.Models
         public string WatchDirectory { get; set; } = @"C:\Watched";
         public string FileSuffix { get; set; } = "VF";
         public string DestinationDirectory { get; set; } = @"C:\Destination";
-        public string BackupDirectory { get; set; } = @"C:\Backups"; // ✅ Add this
+        public string BackupDirectory { get; set; } = @"C:\Backups"; 
 
         private static readonly string SettingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

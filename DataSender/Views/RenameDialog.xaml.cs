@@ -23,23 +23,16 @@ namespace DataSender.Views
             InitializeComponent();
             NameBox.Text = suggestedName;
 
-            //Dispatcher.BeginInvoke(new Action(() =>
-            //{
-            //    NameBox.Focus();
-            //    NameBox.SelectAll();
-            //}), DispatcherPriority.Input);
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Force this window to the front
+            // Force this window to the front + Focus Dialog + Select Text
             this.Topmost = true;
             this.Activate();
             this.Focus();
 
-            // Focus the textbox and place the cursor at the end
             NameBox.Focus();
             NameBox.SelectAll();
-            //NameBox.CaretIndex = NameBox.Text.Length;
         }
 
         private void Ok_Click(object sender, RoutedEventArgs e)

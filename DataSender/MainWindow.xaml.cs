@@ -44,7 +44,6 @@ namespace DataSender
                 EnableRaisingEvents = true,
                 IncludeSubdirectories = true,
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.LastWrite,
-                //Filter = $"*{_settings.FileSuffix}"
             };
 
             _watcher.Created += OnFileCreated;

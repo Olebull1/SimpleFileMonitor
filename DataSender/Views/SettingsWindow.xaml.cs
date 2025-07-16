@@ -27,7 +27,7 @@ namespace DataSender.Views
             WatchDirBox.Text = Settings.WatchDirectory;
             SuffixBox.Text = Settings.FileSuffix;
             DestDirBox.Text = Settings.DestinationDirectory;
-            BackupDirBox.Text = Settings.BackupDirectory; // ✅ Add this
+            BackupDirBox.Text = Settings.BackupDirectory; 
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -35,7 +35,7 @@ namespace DataSender.Views
             Settings.WatchDirectory = WatchDirBox.Text.Trim();
             Settings.FileSuffix = SuffixBox.Text.Trim();
             Settings.DestinationDirectory = DestDirBox.Text.Trim();
-            Settings.BackupDirectory = BackupDirBox.Text.Trim(); // ✅ Add this
+            Settings.BackupDirectory = BackupDirBox.Text.Trim();
 
             DialogResult = true;
             Close();

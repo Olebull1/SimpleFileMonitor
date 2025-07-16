@@ -16,7 +16,7 @@ namespace DataSender.Services
             {
                 var toast = new ToastNotification(title, message, showSpinner)
                 {
-                    Topmost = true // 👈 Forces window to the front
+                    Topmost = true
                 };
                 toast.Show();
             });

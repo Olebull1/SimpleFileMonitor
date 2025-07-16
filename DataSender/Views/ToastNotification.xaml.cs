@@ -23,11 +23,13 @@ namespace DataSender.Views
         public ToastNotification(string title, string message, bool showSpinner = false)
         {
             InitializeComponent();
+            //Prepare Window for fade in
             Opacity = 0;
             TitleText.Text = title;
             MessageText.Text = message;
             LoadingBar.Visibility = showSpinner ? Visibility.Visible : Visibility.Collapsed;
 
+            //Once rendered begin fade animation
             ContentRendered += (s, e) =>
             {
                 Console.WriteLine("ContentRendered fired");
