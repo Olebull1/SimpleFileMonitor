@@ -96,7 +96,7 @@ namespace DataSender
                         File.Copy(e.FullPath, backupPath, overwrite: true);
 
                         Directory.CreateDirectory(_settings.DestinationDirectory);
-                        File.Copy(e.FullPath, destPath, overwrite: true);
+                        File.Move(e.FullPath, destPath, overwrite: true);
 
                         Dispatcher.Invoke(() =>
                         {
