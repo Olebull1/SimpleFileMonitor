@@ -6,7 +6,8 @@
         WindowStyle="SingleBorderWindow"
         ShowInTaskbar="True"
         ResizeMode="NoResize"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded"
+        Icon="/Assets/IconFull.ico">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
