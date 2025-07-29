@@ -16,6 +16,7 @@ namespace DataSender.Services
 
         public event Action<string>? FileDetected;
 
+        private bool _firstRun = true;
         public RemovableMonitorService(string path, double intervalSeconds = 5)
         {
             _path = path;
@@ -45,9 +46,11 @@ namespace DataSender.Services
             {
                 if (_seen.Add(file))
                 {
-                    FileDetected?.Invoke(file);
+                    if(_firstRun == false)
+                        FileDetected?.Invoke(file);
                 }
             }
+            _firstRun = false;
         }
     }
 }
