@@ -1,7 +1,7 @@
 ﻿<Window x:Class="DataSender.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="File Monitor" Height="350" Width="500"
+        Title="File Monitor" Height="350" Width="510"
         Icon="/Assets/IconFull.ico">
     <Grid Margin="10">
         <Grid.RowDefinitions>

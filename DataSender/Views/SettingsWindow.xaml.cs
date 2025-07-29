@@ -27,7 +27,10 @@ namespace DataSender.Views
             WatchDirBox.Text = Settings.WatchDirectory;
             SuffixBox.Text = Settings.FileSuffix;
             DestDirBox.Text = Settings.DestinationDirectory;
-            BackupDirBox.Text = Settings.BackupDirectory; 
+            BackupDirBox.Text = Settings.BackupDirectory;
+            Console.WriteLine("Settings IsRemovable is: " + Settings.IsRemovable);
+            IsRemovableBox.IsChecked = true;
+            //IsRemovableBox.IsChecked = Settings.IsRemovable;
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -36,6 +39,7 @@ namespace DataSender.Views
             Settings.FileSuffix = SuffixBox.Text.Trim();
             Settings.DestinationDirectory = DestDirBox.Text.Trim();
             Settings.BackupDirectory = BackupDirBox.Text.Trim();
+            Settings.IsRemovable = IsRemovableBox.IsChecked == true;
 
             DialogResult = true;
             Close();

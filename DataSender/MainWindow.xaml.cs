@@ -13,136 +13,123 @@ namespace DataSender
 {
     public partial class MainWindow : Window
     {
-        private FileSystemWatcher? _watcher;
         private AppSettings _settings;
-        private bool _isMonitoring = false;
+        private FileMonitorService? _fileMonitor;
+        private RemovableMonitorService? _removableMonitor;
+        private FileTransferService _transferService;
+
         public MainWindow()
         {
             InitializeComponent();
 
             _settings = AppSettings.Load();
+            _transferService = new FileTransferService(_settings);
+
             Log("Settings loaded.");
             SetStatus("Idle", Colors.Gray);
         }
 
         private void StartMonitoring_Click(object sender, RoutedEventArgs e)
         {
-            if (_isMonitoring)
+            if (_settings.IsRemovable)
             {
-                Log("Already monitoring.");
-                return;
+                if (_removableMonitor != null)
+                {
+                    Log("Removable monitor is already running.");
+                    return;
+                }
+
+                _removableMonitor = new RemovableMonitorService(_settings.WatchDirectory, 1);
+                _removableMonitor.FileDetected += OnFileDetected;
+                _removableMonitor.Start();
+
+                Log($"Started removable polling on {_settings.WatchDirectory}");
+                SetStatus("Polling Removable Directory", Colors.Green);
             }
-
-            if (!Directory.Exists(_settings.WatchDirectory))
+            else
             {
-                MessageBox.Show("Watch directory does not exist.");
-                return;
+                if (_fileMonitor?.IsRunning == true)
+                {
+                    Log("File monitor is already running.");
+                    return;
+                }
+
+                _fileMonitor = new FileMonitorService();
+                _fileMonitor.FileDetected += OnFileDetected;
+                _fileMonitor.Start(_settings.WatchDirectory);
+
+                Log($"Started file monitor on {_settings.WatchDirectory}");
+                SetStatus("Monitoring", Colors.Green);
             }
-
-            _watcher = new FileSystemWatcher(_settings.WatchDirectory)
-            {
-                EnableRaisingEvents = true,
-                IncludeSubdirectories = true,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.LastWrite,
-            };
-
-            _watcher.Created += OnFileCreated;
-            _isMonitoring = true;
-            Log($"Started monitoring: {_settings.WatchDirectory}");
-            SetStatus("Monitoring", Colors.Green);
         }
 
         private void StopMonitoring_Click(object sender, RoutedEventArgs e)
         {
-            if (_watcher != null)
-            {
-                _watcher.EnableRaisingEvents = false;
-                _watcher.Dispose();
-                _watcher = null;
-                _isMonitoring = false;
-                Log("Stopped monitoring.");
-                SetStatus("Stopped", Colors.Red);
-            }
+            _fileMonitor?.Stop();
+            _removableMonitor?.Stop();
+
+            _fileMonitor = null;
+            _removableMonitor = null;
+
+            Log("Monitoring stopped.");
+            SetStatus("Stopped", Colors.Red);
         }
 
-        private void OnFileCreated(object sender, FileSystemEventArgs e)
+        private void OnFileDetected(string fullPath)
         {
             Dispatcher.Invoke(() =>
             {
-                string originalName = Path.GetFileNameWithoutExtension(e.Name);
-                string extension = Path.GetExtension(e.Name);
+                string fileName = Path.GetFileName(fullPath);
+                string baseName = Path.GetFileNameWithoutExtension(fileName);
+                string extension = Path.GetExtension(fileName);
 
-                var renameDialog = new RenameDialog(originalName)
+                var dialog = new RenameDialog(baseName) { Owner = this };
+                if (dialog.ShowDialog() != true)
                 {
-                    Owner = this
-                };
-
-                if (renameDialog.ShowDialog() != true)
-                {
-                    Log($"Skipped file: {e.Name} (user canceled rename)");
+                    Log($"Skipped file: {fileName} (rename canceled)");
                     return;
                 }
 
-                string renamedFile = $"{renameDialog.EnteredName}-{_settings.FileSuffix}{extension}";
-                string destPath = Path.Combine(_settings.DestinationDirectory, renamedFile);
-                string backupPath = Path.Combine(_settings.BackupDirectory, DateTime.Now.ToString("yyyy-MM-dd"), renamedFile);
+                string renamedFile = $"{dialog.EnteredName}-{_settings.FileSuffix}{extension}";
 
-                Task.Run(() =>
-                {
-                    try
+                _transferService.BackupAndCopy(
+                    sourcePath: fullPath,
+                    renamedFileName: renamedFile,
+                    log: Log,
+                    notify: (file, success) =>
                     {
-                        Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
-                        File.Copy(e.FullPath, backupPath, overwrite: true);
-
-                        Directory.CreateDirectory(_settings.DestinationDirectory);
-                        File.Move(e.FullPath, destPath, overwrite: true);
-
-                        Dispatcher.Invoke(() =>
-                        {
-                            Log($"Transfer complete: {renamedFile}");
-                            ToastService.ShowToast("Transfer Complete", renamedFile);
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            Log($"Transfer failed: {renamedFile} — {ex.Message}");
-                            ToastService.ShowToast("Transfer Failed", renamedFile);
-                        });
-                    }
-                });
+                        string title = success ? "Transfer Complete" : "Transfer Failed";
+                        ToastService.ShowToast(title, file);
+                    });
             });
         }
 
         private void OpenSettings_Click(object sender, RoutedEventArgs e)
         {
-            var settingsWindow = new SettingsWindow(_settings.Clone())
-            {
-                Owner = this
-            };
-
+            var settingsWindow = new SettingsWindow(_settings.Clone()) { Owner = this };
             if (settingsWindow.ShowDialog() == true)
             {
                 _settings = settingsWindow.Settings;
                 _settings.Save();
-                Log("Settings saved.");
+                _transferService = new FileTransferService(_settings);
+                Log("Settings updated.");
             }
         }
 
         private void Log(string message)
         {
-            string timestamp = DateTime.Now.ToString("HH:mm:ss");
-            LogList.Items.Add($"[{timestamp}] {message}");
-
-            // Keep the most recent log visible
-            LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+            Dispatcher.Invoke(() =>
+            {
+                string timestamp = DateTime.Now.ToString("HH:mm:ss");
+                LogList.Items.Add($"[{timestamp}] {message}");
+                LogList.ScrollIntoView(LogList.Items[^1]);
+            });
         }
 
-        private void SetStatus(string text, System.Windows.Media.Color color)
+        private void SetStatus(string text, Color color)
         {
             StatusText.Text = $"Status: {text}";
-            StatusText.Foreground = new System.Windows.Media.SolidColorBrush(color);
+            StatusText.Foreground = new SolidColorBrush(color);
         }
     }
 }

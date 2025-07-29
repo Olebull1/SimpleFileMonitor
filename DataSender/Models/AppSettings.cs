@@ -13,7 +13,8 @@ namespace DataSender.Models
         public string WatchDirectory { get; set; } = @"C:\Watched";
         public string FileSuffix { get; set; } = "VF";
         public string DestinationDirectory { get; set; } = @"C:\Destination";
-        public string BackupDirectory { get; set; } = @"C:\Backups"; 
+        public string BackupDirectory { get; set; } = @"C:\Backups";
+        public bool IsRemovable { get; set; } = false;
 
         private static readonly string SettingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -26,7 +27,8 @@ namespace DataSender.Models
                 WatchDirectory = this.WatchDirectory,
                 FileSuffix = this.FileSuffix,
                 DestinationDirectory = this.DestinationDirectory,
-                BackupDirectory = this.BackupDirectory
+                BackupDirectory = this.BackupDirectory,
+                IsRemovable = this.IsRemovable
             };
         }
 
